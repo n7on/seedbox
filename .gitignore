@@ -1,0 +1,5 @@
+# Secrets
+.env
+
+# Local tooling
+.claude/

@@ -1,0 +1,90 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=wireguard
+      - VPN_ENDPOINT_IP=${VPN_ENDPOINT_IP}
+      - VPN_ENDPOINT_PORT=${VPN_ENDPOINT_PORT}
+      - WIREGUARD_PUBLIC_KEY=${WIREGUARD_PUBLIC_KEY}
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/gluetun-entrypoint", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  torrent:
+    image: lscr.io/linuxserver/qbittorrent
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Stockholm
+      - WEBUI_PORT=8080
+      - WEBUI_USERNAME=admin
+    volumes:
+      - downloads:/downloads
+      - qbt_config:/config
+    restart: unless-stopped
+    depends_on:
+      gluetun:
+        condition: service_healthy
+
+  samba:
+    image: dperson/samba
+    container_name: samba
+    environment:
+      - TZ=Europe/Stockholm
+    volumes:
+      - downloads:/downloads
+    ports:
+      - "445:445"
+      - "139:139"
+    command: '-s "downloads;/downloads;yes;no;yes;all;all;all"'
+    restart: unless-stopped
+
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    environment:
+      - TZ=Europe/Stockholm
+    volumes:
+      - jellyfin_config:/config
+      - downloads:/media
+    ports:
+      - "8096:8096"
+      - "7359:7359/udp"  # DLNA discovery
+      - "1900:1900/udp"  # DLNA
+    restart: unless-stopped
+
+volumes:
+  downloads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/downloads
+  qbt_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/stacks/seedbox/qbittorrent
+  jellyfin_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/stacks/seedbox/jellyfin
