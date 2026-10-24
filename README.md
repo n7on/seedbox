@@ -104,6 +104,9 @@ docker exec gluetun wget -qO- https://ipinfo.io/ip
 - `TZ` is set to `Europe/Stockholm`; change it to your timezone.
 - The Samba share requires the `SMB_USER` login; guest access is off. Files
   written over SMB are owned by UID/GID 1000, matching qBittorrent.
+- Samba's recycle bin is disabled (`-r`), so deleting over SMB really
+  deletes. Otherwise files move to a hidden `.deleted` folder that Jellyfin
+  keeps listing.
 
 ## License
 

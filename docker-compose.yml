@@ -55,6 +55,7 @@ services:
     command: >-
       -u "${SMB_USER};${SMB_PASSWORD};1000;${SMB_USER};1000"
       -s "downloads;/downloads;yes;no;no;${SMB_USER};${SMB_USER};${SMB_USER}"
+      -r
     restart: unless-stopped
 
   jellyfin:
