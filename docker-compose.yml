@@ -52,7 +52,9 @@ services:
     ports:
       - "445:445"
       - "139:139"
-    command: '-s "downloads;/downloads;yes;no;yes;all;all;all"'
+    command: >-
+      -u "${SMB_USER};${SMB_PASSWORD};1000;${SMB_USER};1000"
+      -s "downloads;/downloads;yes;no;no;${SMB_USER};${SMB_USER};${SMB_USER}"
     restart: unless-stopped
 
   jellyfin:

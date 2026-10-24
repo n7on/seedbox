@@ -66,6 +66,9 @@ It also waits for gluetun's healthcheck to pass before starting.
    | `WIREGUARD_PRIVATE_KEY` | `[Interface] PrivateKey` |
    | `WIREGUARD_ADDRESSES` | `[Interface] Address` |
 
+   Also set `SMB_USER` and `SMB_PASSWORD` for the Samba share. Using the same
+   login as your Jellyfin user keeps things simple. The password can't contain `;`.
+
 4. **Start the stack**
 
    ```sh
@@ -78,7 +81,7 @@ It also waits for gluetun's healthcheck to pass before starting.
 |---|---|
 | qBittorrent web UI | `http://<host>:8080` |
 | Jellyfin | `http://<host>:8096` |
-| SMB share | `\\<host>\downloads` or `smb://<host>/downloads` |
+| SMB share | `\\<host>\downloads` or `smb://<host>/downloads` (log in as `SMB_USER`) |
 
 **qBittorrent login:** the username is `admin`. On first start the linuxserver
 image prints a temporary password to the logs:
@@ -99,9 +102,8 @@ docker exec gluetun wget -qO- https://ipinfo.io/ip
 
 - `PUID`/`PGID` (default `1000`) set the owner of downloaded files.
 - `TZ` is set to `Europe/Stockholm`; change it to your timezone.
-- The Samba share is guest-accessible and writable, with no password. Keep it
-  on a trusted LAN only, or edit the `command` line of the `samba` service to
-  add users (see the [dperson/samba docs](https://github.com/dperson/samba)).
+- The Samba share requires the `SMB_USER` login; guest access is off. Files
+  written over SMB are owned by UID/GID 1000, matching qBittorrent.
 
 ## License
 
